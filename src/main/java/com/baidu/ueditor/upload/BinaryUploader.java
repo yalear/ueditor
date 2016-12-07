@@ -1,11 +1,5 @@
 package com.baidu.ueditor.upload;
 
-import com.baidu.ueditor.PathFormat;
-import com.baidu.ueditor.define.AppInfo;
-import com.baidu.ueditor.define.BaseState;
-import com.baidu.ueditor.define.FileType;
-import com.baidu.ueditor.define.State;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -19,6 +13,12 @@ import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+
+import com.baidu.ueditor.PathFormat;
+import com.baidu.ueditor.define.AppInfo;
+import com.baidu.ueditor.define.BaseState;
+import com.baidu.ueditor.define.FileType;
+import com.baidu.ueditor.define.State;
 
 public class BinaryUploader {
 
@@ -54,6 +54,7 @@ public class BinaryUploader {
 			}
 
 			String savePath = (String) conf.get("savePath");
+			String localSavePathPrefix = (String) conf.get("localSavePathPrefix");
 			String originFileName = fileStream.getName();
 			String suffix = FileType.getSuffixByFilename(originFileName);
 
@@ -70,11 +71,18 @@ public class BinaryUploader {
 			savePath = PathFormat.parse(savePath, originFileName);
 
 			String physicalPath = (String) conf.get("rootPath") + savePath;
+			
+			if (localSavePathPrefix != null && (localSavePathPrefix.length()) > 0) {
+				physicalPath = localSavePathPrefix;
+	        }
 
 			InputStream is = fileStream.openStream();
 			State storageState = StorageManager.saveFileByInputStream(is,
 					physicalPath, maxSize);
 			is.close();
+			
+			System.out.println("physicalPath:"+physicalPath);
+			System.out.println("savePath:"+savePath);
 
 			if (storageState.isSuccess()) {
 				storageState.putInfo("url", PathFormat.format(savePath));
